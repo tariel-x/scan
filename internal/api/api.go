@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gobuffalo/packr"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/tariel-x/scan/internal/scan"
 	"go.uber.org/zap"
 )
 
-func NewApi(listen string, s *scan.Scan, l *zap.Logger) (*Api, error) {
+func NewApi(listen string, s *scan.Scan, l *zap.Logger, box packr.Box) (*Api, error) {
 	e := echo.New()
 	e.Logger.SetOutput(ioutil.Discard)
 
@@ -21,6 +22,7 @@ func NewApi(listen string, s *scan.Scan, l *zap.Logger) (*Api, error) {
 		e:      e,
 		s:      s,
 		listen: listen,
+		box:    box,
 	}
 
 	e.Use(a.LoggerMiddleware)
@@ -29,6 +31,7 @@ func NewApi(listen string, s *scan.Scan, l *zap.Logger) (*Api, error) {
 	e.POST("/api/devices/refresh", a.GetDevicesRefresh)
 	e.GET("/api/devices/:name/options", a.GetDevicesOptions)
 	e.POST("/api/devices/:name/scan", a.PostDevicesScan)
+	e.GET("/*", a.Static)
 
 	return a, nil
 }
@@ -60,6 +63,7 @@ type Api struct {
 	e      *echo.Echo
 	s      *scan.Scan
 	listen string
+	box    packr.Box
 }
 
 func (a *Api) Run() error {
@@ -102,4 +106,10 @@ func (a *Api) PostDevicesScan(c echo.Context) error {
 		a.l.Error("can not scan image", zap.Error(err))
 	}
 	return c.Blob(http.StatusOK, "image/png", img)
+}
+
+func (a *Api) Static(c echo.Context) error {
+	httpHandler := http.FileServer(a.box)
+	httpHandler.ServeHTTP(c.Response().Writer, c.Request())
+	return nil
 }

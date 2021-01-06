@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gobuffalo/packr"
 	"github.com/tariel-x/scan/internal/api"
 	"github.com/tariel-x/scan/internal/scan"
 	"go.uber.org/dig"
@@ -20,8 +21,11 @@ func main() {
 		NewLogger,
 		NewConfig,
 		scan.NewScan,
-		func(cfg *Config, s *scan.Scan, l *zap.Logger) (*api.Api, error) {
-			return api.NewApi(cfg.Listen, s, l)
+		func() packr.Box {
+			return packr.NewBox("../../web/public")
+		},
+		func(cfg *Config, s *scan.Scan, l *zap.Logger, box packr.Box) (*api.Api, error) {
+			return api.NewApi(cfg.Listen, s, l, box)
 		},
 	}
 
