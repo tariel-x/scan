@@ -26,7 +26,11 @@ func NewApi(listen string, s *scan.Scan, l *zap.Logger, box packr.Box) (*Api, er
 	}
 
 	e.Use(a.LoggerMiddleware)
-	e.Use(middleware.Logger())
+	//e.Use(middleware.Logger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:8085", "http://localhost:5000"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 	e.GET("/api/devices", a.GetDevices)
 	e.POST("/api/devices/refresh", a.GetDevicesRefresh)
 	e.GET("/api/devices/:name/options", a.GetDevicesOptions)
