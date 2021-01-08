@@ -1,22 +1,29 @@
 <script>
-    import { ListGroup, ListGroupItem } from 'sveltestrap';
-    import { Spinner } from 'sveltestrap';
+    import { ListGroup, ListGroupItem, Spinner } from 'sveltestrap';
 
     import { onMount } from "svelte";
 
     let scanners;
 
     onMount(async () => {
-        await fetch(`http://localhost:8085/api/devices`)
+        await fetch(`/api/devices`)
             .then(r => r.json())
             .then(data => {
                 scanners = data;
+                if (scanners.length > 0) {
+                    select(scanners[0].name);
+                }
             });
     });
 
-    export let value = '';
+    import { scanner } from './stores.js';
 
-    const select = name => () => value = name;
+    function select(name) {
+        scanner.set(name)
+        value = name
+    }
+
+    let value = '';
 
 </script>
 
