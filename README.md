@@ -2,6 +2,8 @@
 
 Scan is the frontend for SANE built with golang and svelte.
 
+![Scan with SANE test devices](screenshot.jpeg)
+
 Features:
 
 - List connected scanners.
