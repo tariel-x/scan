@@ -9,6 +9,7 @@
     } from 'sveltestrap';
     import Scanners from './Scanners.svelte';
     import ScanPage from './ScanPage.svelte'
+    import SettingsPage from './SettingsPage.svelte'
 
     let scannerName;
 
@@ -41,6 +42,7 @@
                 </Col>
             </Row>
             <ScanPage active={"scan" === activeTab}/>
+            <SettingsPage active={"settings" === activeTab}/>
         </Col>
     </Row>
 </Container>

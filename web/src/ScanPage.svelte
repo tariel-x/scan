@@ -9,7 +9,7 @@
     } from 'sveltestrap';
 
     export let active;
-    $: mainRowClass = active ? '' : 'invisible';
+    $: mainRowClass = active ? '' : 'd-none';
 
     let imageSource = '';
     let imageShown = false;
