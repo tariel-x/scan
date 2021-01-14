@@ -99,9 +99,28 @@ func (a *Api) GetDevicesOptions(c echo.Context) error {
 
 func (a *Api) PostDevicesScan(c echo.Context) error {
 	name := c.Param("name")
-	img, err := a.s.Scan(name, nil)
+
+	rawArguments := map[string]interface{}{}
+	if err := c.Bind(&rawArguments); err != nil {
+		a.l.Error("can not parse settings", zap.Error(err))
+		return errors.New("can not parse settings")
+	}
+
+	arguments := make([]scan.Argument, 0, len(rawArguments))
+	for key, value := range rawArguments {
+		if key == "name" {
+			continue
+		}
+		arguments = append(arguments, scan.Argument{
+			Name:  key,
+			Value: value,
+		})
+	}
+
+	img, err := a.s.Scan(name, arguments)
 	if err != nil {
 		a.l.Error("can not scan image", zap.Error(err))
+		return errors.New("can not scan image")
 	}
 	return c.Blob(http.StatusOK, "image/png", img)
 }

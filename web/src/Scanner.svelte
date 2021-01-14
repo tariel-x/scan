@@ -13,6 +13,8 @@
 
     let scannerName;
 
+    let settings = {};
+
     import { scanner } from './stores.js';
     const unsubscribe = scanner.subscribe(value => {
         scannerName = value;
@@ -41,8 +43,8 @@
                     </Nav>
                 </Col>
             </Row>
-            <ScanPage active={"scan" === activeTab}/>
-            <SettingsPage active={"settings" === activeTab}/>
+            <ScanPage active={"scan" === activeTab} settings={settings}/>
+            <SettingsPage active={"settings" === activeTab} bind:settings={settings}/>
         </Col>
     </Row>
 </Container>

@@ -8,6 +8,8 @@
         Spinner,
     } from 'sveltestrap';
 
+    export let settings = {};
+
     export let active;
     $: mainRowClass = active ? '' : 'd-none';
 
@@ -30,11 +32,14 @@
         clear();
     });
 
-    const scan = async (data) => {
+    const scan = async () => {
         spinnerShown = true;
         await fetch(`/api/devices/`+ scannerName +`/scan`, {
             method: 'POST',
-            body: JSON.stringify(data)
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
         })
             .then(r => r.blob())
             .then(blob => {
@@ -70,7 +75,7 @@
         <Row>
             <Col>
                 <h5 object class={imageClass}>Image from {scannerName}</h5>
-                <Media object class={imageClass} src={imageSource}/>
+                <img class="img-fluid {imageClass}" src={imageSource}/>
                 <Spinner class={spinnerClass}/>
             </Col>
         </Row>

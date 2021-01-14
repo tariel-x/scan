@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"image/png"
+	"strconv"
 	"sync"
 	"time"
 
@@ -161,9 +162,9 @@ var toSaneType = map[Type]sane.Type{
 }
 
 type Range struct {
-	Min   interface{} // minimum value
-	Max   interface{} // maximum value
-	Quant interface{} // quantization step
+	Min   interface{} `json:"min"`   // minimum value
+	Max   interface{} `json:"max"`   // maximum value
+	Quant interface{} `json:"quant"` // quantization step
 }
 
 func (s *Scan) GetDeviceOptions(name string) ([]Option, error) {
@@ -241,6 +242,10 @@ func (s *Scan) Scan(name string, arguments []Argument) ([]byte, error) {
 	opts := conn.Options()
 
 	for _, arg := range arguments {
+		if arg.Value == nil {
+			continue
+		}
+
 		opt, err := s.findOption(opts, arg.Name)
 		if err != nil {
 			return nil, err
@@ -251,19 +256,31 @@ func (s *Scan) Scan(name string, arguments []Argument) ([]byte, error) {
 		switch opt.Type {
 		case sane.TypeBool:
 			if v, ok = arg.Value.(bool); !ok {
-				return nil, ErrInvalidArgument // not a bool
+				return nil, fmt.Errorf("%s is %T not a bool: %w", v, arg.Name, ErrInvalidArgument) // not a bool
 			}
 		case sane.TypeInt:
-			if v, ok = arg.Value.(int); !ok {
-				return nil, ErrInvalidArgument // not an int
+			switch typedV := arg.Value.(type) {
+			case int:
+			case int32:
+			case int64:
+			case float64:
+				v = int(typedV)
+			case string:
+				var err error
+				v, err = strconv.ParseInt(typedV, 0, 32)
+				if err != nil {
+					return nil, fmt.Errorf("%s is not valid int: %w", typedV, ErrInvalidArgument)
+				}
+			default:
+				return nil, fmt.Errorf("%s is %T not an int: %w", typedV, arg.Name, ErrInvalidArgument) // not an int
 			}
 		case sane.TypeFloat:
 			if v, ok = arg.Value.(float64); !ok {
-				return nil, ErrInvalidArgument // not a float
+				return nil, fmt.Errorf("%s is %T not a float64: %w", v, arg.Name, ErrInvalidArgument) // not a float
 			}
 		case sane.TypeString:
 			if v, ok = arg.Value.(string); !ok {
-				return nil, ErrInvalidArgument // not a float
+				return nil, fmt.Errorf("%s is %T not a string: %w", v, arg.Name, ErrInvalidArgument) // not a float
 			}
 		}
 
@@ -293,5 +310,5 @@ func (s *Scan) findOption(opts []sane.Option, name string) (*sane.Option, error)
 			return &o, nil
 		}
 	}
-	return nil, ErrNoOption
+	return nil, fmt.Errorf("can not find option %q: %w", name, ErrNoOption)
 }
