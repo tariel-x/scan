@@ -271,8 +271,27 @@ func (s *Scan) Scan(name string, arguments []Argument) ([]byte, error) {
 				if err != nil {
 					return nil, fmt.Errorf("%s is not valid int: %w", typedV, ErrInvalidArgument)
 				}
+			case []interface{}:
+				vs := make([]int, 0, len(typedV))
+				for _, item := range typedV {
+					switch typedItem := item.(type) {
+					case float64:
+						vs = append(vs, int(typedItem))
+					case float32:
+						vs = append(vs, int(typedItem))
+					case int:
+						vs = append(vs, int(typedItem))
+					case int64:
+						vs = append(vs, int(typedItem))
+					case int32:
+						vs = append(vs, int(typedItem))
+					default:
+						fmt.Printf("%s %T err \n", item, item)
+					}
+				}
+				v = vs
 			default:
-				return nil, fmt.Errorf("%s is %T not an int: %w", typedV, arg.Name, ErrInvalidArgument) // not an int
+				return nil, fmt.Errorf("%#v is %T not an int: %w", typedV, arg.Name, ErrInvalidArgument) // not an int
 			}
 		case sane.TypeFloat:
 			if v, ok = arg.Value.(float64); !ok {
