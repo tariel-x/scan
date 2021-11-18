@@ -8,7 +8,9 @@ import (
 	"syscall"
 
 	"github.com/gobuffalo/packr"
+	"github.com/tariel-x/scan/internal"
 	"github.com/tariel-x/scan/internal/api"
+	"github.com/tariel-x/scan/internal/projects"
 	"github.com/tariel-x/scan/internal/scan"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -24,8 +26,11 @@ func main() {
 		func() packr.Box {
 			return packr.NewBox("../../web/public")
 		},
-		func(cfg *Config, s *scan.Scan, l *zap.Logger, box packr.Box) (*api.Api, error) {
-			return api.NewApi(cfg.Listen, s, l, box)
+		func(cfg *Config) (internal.ProjectManager, error) {
+			return projects.NewProjects(cfg.ImageStorage)
+		},
+		func(cfg *Config, s *scan.Scan, l *zap.Logger, box packr.Box, p internal.ProjectManager) (*api.Api, error) {
+			return api.NewApi(cfg.Listen, s, l, box, p)
 		},
 	}
 

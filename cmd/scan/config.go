@@ -5,8 +5,9 @@ import (
 )
 
 type Config struct {
-	Debug  bool   `env:"DEBUG" envDefault:"false"`
-	Listen string `env:"LISTEN" envDefault:"localhost:8085"`
+	Debug        bool   `env:"DEBUG" envDefault:"false"`
+	Listen       string `env:"LISTEN" envDefault:"localhost:8085"`
+	ImageStorage string `env:"IMAGE_STORAGE" envDefault:"./"`
 }
 
 func NewConfig() (*Config, error) {
